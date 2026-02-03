@@ -1,0 +1,145 @@
+# Example Configuration for Agent Orchestration Engine
+# Copy this file and customize for your environment
+
+# Engine Configuration
+engine:
+  max_concurrent_workflows: 50  # Maximum number of workflows running simultaneously
+
+# Rate Limiting Configuration
+# Adjust based on your API tier and needs
+rate_limiting:
+  requests_per_minute: 60      # Max API requests per minute
+  requests_per_hour: 3000      # Max API requests per hour
+  requests_per_day: 50000      # Max API requests per day
+  tokens_per_minute: 100000    # Max tokens per minute
+  concurrent_requests: 10      # Max concurrent API requests
+
+# Cost Tracking Configuration
+cost_tracking:
+  # Cost per 1000 tokens (input/output) in USD
+  model_costs:
+    # OpenAI Models
+    gpt-4:
+      input: 0.03
+      output: 0.06
+    gpt-4-turbo:
+      input: 0.01
+      output: 0.03
+    gpt-3.5-turbo:
+      input: 0.0005
+      output: 0.0015
+
+    # Anthropic Claude Models
+    claude-3-opus-20240229:
+      input: 0.015
+      output: 0.075
+    claude-3-sonnet-20240229:
+      input: 0.003
+      output: 0.015
+    claude-3-haiku-20240307:
+      input: 0.00025
+      output: 0.00125
+
+  # Default costs for unknown models
+  default_input_cost: 0.01
+  default_output_cost: 0.03
+
+# Retry Policy Configuration
+retry_policy:
+  max_retries: 3                          # Maximum number of retry attempts
+  strategy: exponential_backoff            # Options: exponential_backoff, linear_backoff, constant_delay, immediate
+  base_delay: 1.0                         # Base delay in seconds
+  max_delay: 60.0                         # Maximum delay in seconds
+  exponential_base: 2.0                   # Base for exponential backoff
+  jitter: true                            # Add random jitter to delays
+
+# Monitoring Configuration
+monitoring:
+  enable_metrics: true                    # Enable metrics collection
+  enable_logging: true                    # Enable event logging
+  metrics_interval: 60.0                  # Metrics collection interval in seconds
+
+# Workflow Defaults
+workflow_defaults:
+  max_parallel_agents: 10                 # Default max parallel agents per workflow
+  cost_budget: 100.0                      # Default cost budget in USD
+  timeout: 3600.0                         # Default timeout in seconds
+  allow_partial_completion: true          # Allow workflows to complete partially
+
+# Agent Defaults
+agent_defaults:
+  max_retries: 3                          # Default max retries per agent
+  timeout: 300.0                          # Default timeout in seconds
+  cost_limit: 1.0                         # Default cost limit in USD
+  priority: 5                             # Default priority (1-10)
+
+# Logging Configuration
+logging:
+  level: INFO                             # Options: DEBUG, INFO, WARNING, ERROR
+  format: json                            # Options: json, text
+  output: stdout                          # Options: stdout, file
+  file_path: logs/orchestrator.log       # Log file path (if output=file)
+  max_file_size: 100MB                    # Max log file size
+  backup_count: 5                         # Number of backup log files
+
+# Redis Configuration (for distributed deployments)
+redis:
+  enabled: false                          # Enable Redis for distributed rate limiting
+  host: localhost
+  port: 6379
+  db: 0
+  password: null
+  ssl: false
+
+# Prometheus Configuration (for metrics export)
+prometheus:
+  enabled: false                          # Enable Prometheus metrics export
+  port: 8000                             # Metrics endpoint port
+  path: /metrics                         # Metrics endpoint path
+
+# Environment-specific settings
+environments:
+  development:
+    rate_limiting:
+      requests_per_minute: 30
+      concurrent_requests: 5
+    logging:
+      level: DEBUG
+
+  staging:
+    rate_limiting:
+      requests_per_minute: 60
+      concurrent_requests: 10
+    logging:
+      level: INFO
+
+  production:
+    rate_limiting:
+      requests_per_minute: 100
+      requests_per_hour: 5000
+      concurrent_requests: 20
+    monitoring:
+      enable_metrics: true
+      enable_logging: true
+    logging:
+      level: WARNING
+      output: file
+
+# Alert Configuration
+alerts:
+  enabled: false
+  thresholds:
+    cost_per_hour: 100.0                  # Alert if cost exceeds this per hour
+    failure_rate: 0.2                     # Alert if failure rate exceeds 20%
+    avg_execution_time: 300.0             # Alert if avg time exceeds 5 minutes
+  channels:
+    - email
+    - slack
+  email:
+    smtp_host: smtp.example.com
+    smtp_port: 587
+    from: alerts@example.com
+    to:
+      - ops@example.com
+  slack:
+    webhook_url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
